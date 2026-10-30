@@ -1,0 +1,169 @@
+POUR DECISIONS - CHANGES FROM THE DESIGN DOCUMENT
+==================================================
+
+The one-pager described a 2D bartending skill game: pour liquor into glasses of
+different shapes and sizes and hit an exact target (half a shot, one shot, a
+double) by eye. That core is intact. This file lists what changed while building it, and why.
+
+
+1. NAME
+-------
+The game is now called "Pour Decisions".
+
+
+2. HOW POURING IS SIMULATED (biggest change)
+--------------------------------------------
+Design: flow rate would be some function of tilt and spout, needing lots of
+playtesting ("30 ml/s is realistic but brutal").
+
+Built: flow comes from the bottle's actual shape instead of a hand-tuned curve.
+  - Each bottle's interior is stored as polygons. Every frame the game finds
+    the horizontal liquid surface inside the tilted bottle, then measures how
+    far the spout sits below that surface (the "head").
+  - Flow follows Torricelli's law (speed grows with the square root of head)
+    until the spout's own restriction caps it.
+  - Result: a full bottle starts pouring around 80 degrees and a nearly empty
+    one around 100 to 110, and the stream tapers as the bottle drains. Nobody
+    had to tune that; it falls out of the geometry.
+  - Calibration ended up at 14 ml/s (slow pourer) to 48 ml/s (open neck). A
+    shot takes about 3.2 s on a slow pourer and about 1 s on an open neck.
+  - Headless tests (Tools/PhysicsTests) check start angles, pour times and
+    grading for every bottle, plus whether the stream lands in every glass.
+
+Liquid in flight is real now. The bottle emits small parcels of liquid that
+fall under gravity, and they only count once they land in the glass. Stop
+tilting and what's already in the air still lands, like a real pour. Parcels
+that hit the rim or miss the glass become spills and puddles on the counter.
+
+
+3. LIQUIDS
+----------
+Design: whiskey, vodka, tequila, rum.
+Built: whiskey, vodka, tequila, dark rum, gin, coffee liqueur.
+Coffee liqueur was added as a "thick" liquid.
+Thick liquids pour slower, need extra tilt before they move, and respond
+sluggishly, so easing off doesn't slow them right away and you have to back off
+early. Once the spout rises above the liquid the stream breaks off fast. The
+tests caught an early version where thick liquids kept dribbling onto the
+counter after the bottle came back up, and that was fixed.
+
+
+4. SPOUTS AND "THE POUR WILL NEVER BE CONSISTENT"
+-------------------------------------------------
+There are four spouts: Slow Pourer, Speed Pourer, Wide Pourer and Open Neck. Each order also
+gets a random flow variance from its spout (plus or minus 4 to 12%), so no two
+pours behave exactly alike. Open necks and nearly empty bottles "glug": flow
+surges as air gulps back in, with a matching glug sound.
+
+
+5. GLASSES
+----------
+Six glasses are in: shot, tall shooter, rocks, highball, pint and
+martini. Each is modeled as a truncated cone
+in real centimeters, and the art is drawn from the same numbers, so what you
+see is exactly what's scored. The martini glass is a true cone, so it fills
+deceptively fast at the bottom.
+
+
+6. CONTROLS
+-----------
+Mouse: you can click and drag anywhere in the play area, not just on the bottle
+itself. Grabbing a tiny bottle was fiddly, and the bottle now moves itself over
+the glass as it tilts (like a bartender's wrist), so it never has to be aimed.
+Drag distance still maps to tilt angle (analog). Grabbing a bottle that's
+already tilted picks up where it is instead of snapping.
+
+Keyboard "hard mode": hold Space / Right Arrow / D to tilt at a steady rate and
+let go to stop (the bottle returns upright). Hard mode pays 25% more points.
+A mouse sensitivity option was added.
+
+Other keys: Enter or E to serve, Esc or P to pause, Tab to skip (Training).
+
+
+7. MODES AND PROGRESSION
+------------------------
+  - Classic: five shifts (Opening Shift, Happy Hour, Weekend Rush, Lost the
+    Spouts, Last Call). Each adds glass types, faster or messier spouts, more
+    liquids, shorter timers, and dimmer lights. You need one star to unlock the
+    next shift, and you can earn up to three.
+  - Training (new): no clock, a target line shown in the glass, a live
+    milliliter readout, and the glass's capacity on the ticket.
+Progress and best scores are saved per shift.
+A 90-second "Rush" mode was built and then cut, to keep the game focused on
+Classic progression and Training.
+
+
+8. SCORING
+----------
+Tolerances scale with the order size, so a half shot isn't unfairly harder than
+a double:
+  Perfect: within max(1.5 ml, 5%)    Great: within max(3 ml, 10%)
+  Good: within max(5 ml, 18%)        otherwise Short or Over
+Spilling more than a quarter of the order, or overflowing the glass, is graded
+"Spilled". Small splashes cost a few points. You also get bonuses for time left
+and for streaks. Tips fill a tip jar.
+
+
+9. READABILITY AND FAIRNESS (the doc's concerns)
+------------------------------------------------
+  - Thin layers: the camera eases into a close-up on the glass while you pour,
+    and liquids get a bright meniscus band at the surface, so even clear vodka
+    reads clearly.
+  - Fairness on tapered glasses: art and math come from the same centimeter
+    values; after every serve, a dashed line shows where the target actually
+    was; Training shows each glass's capacity.
+  - Dim lighting: the last two Classic shifts darken the room and leave a pool
+    of light over the glass. Dark rum and coffee liqueur get hard to
+    see, which is what the doc asked for.
+
+
+10. AUDIO
+---------
+All the SFX from the doc are in: pour loop, glugs, glass clink, glass slide,
+splash and spill, cork pop, bottle lift, grade stingers, UI clicks and hover,
+cash register, coins. Timer ticks, level complete/fail and a
+whoosh were added. Two pour behaviors go beyond the doc:
+  - The pour loop's volume follows how much liquid is landing (not how much is
+    leaving the bottle), and its pitch rises as the glass fills, like a real
+    glass. In the dim levels the sound is the best cue you have.
+
+Music: cut. The doc planned a lounge loop for Classic, an upbeat track for
+Rush and a title loop. A procedural jazz backing track was built and then
+removed. The game has no background music; the sound design relies on the
+effects above, especially the pour sound, which you need to hear clearly. It was
+removed because the background music would play heavily over the other sounds.
+So, it was removed entirely to show that the other sounds are noticeable.
+
+
+11. ART AND AUDIO SOURCES
+-------------------------
+Design: take free asset packs from online.
+Built: all sprites and sounds are generated by our own scripts in Tools/
+(generate_art.py with Pillow, generate_audio.py with numpy/scipy). This was done
+because the glass and bottle art has to match the physics exactly, down to the
+centimeter, which downloaded packs couldn't do. It also keeps one consistent
+style. The only outside assets are two Google Fonts (Lilita One and Nunito,
+SIL Open Font License; license files are in Resources/Fonts).
+
+Exception: the background and counter come from a free CC0
+asset pack ("Free Bar Assets Pack" by Styloo, itch.io). Tools/compose_stock_art.py
+lays its pieces (wall, beam, lamps, shelf, bottles, chalkboards, fridge, clock)
+out into a full scene and stretches its counter across the screen.
+
+The art then goes through a retro pixel pass (Tools/pixelate_art.py): each
+sprite is shrunk to chunky pixels with a small palette and imported with point
+filtering, for a simple 8-bit look. Sprites keep their exact sizes, so the art
+still lines up with the physics.
+
+Art made: 6 bottles (back and front layers, with a visible liquid level
+inside), 3 spout attachments, 6 glasses (back and front layers), the bar
+background and counter, 6 customers with 3 expressions each, order ticket, recipe card, speech bubble, tip jar,
+coins, stars, icons, logo, buttons and panels, and particle sprites.
+
+
+12. NOT DONE / CUT
+------------------
+  - Gamepad trigger support and mobile touch (listed as "possible later").
+  - Mixed drinks (out of scope from the start).
+  - A pour "travel delay" setting is unnecessary now that liquid in flight is
+    simulated.

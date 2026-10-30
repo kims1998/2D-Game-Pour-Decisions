@@ -1,0 +1,35 @@
+# Unity generated
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+crashlytics-buildid.txt
+
+# IDE files Unity regenerates (root only, so Tools/PhysicsTests keeps its project file)
+/*.csproj
+/*.sln
+/*.slnx
+.vs/
+.vscode/
+.idea/
+*.user
+*.userprefs
+*.suo
+
+# Test build output
+Tools/PhysicsTests/bin/
+Tools/PhysicsTests/obj/
+
+# OS
+.DS_Store
+Thumbs.db
+__pycache__/

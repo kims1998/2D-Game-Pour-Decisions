@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Headless tests for Pour Decisions. Compiles the real game scripts against small Unity API stubs
+    (Stubs/) so the pour physics, glass math, stream landing and grading can be checked without Unity.
+    Run from the repo root:   dotnet run (project Tools/PhysicsTests), see README.
+    Unity ignores this folder because it is outside Assets/.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>ENABLE_INPUT_SYSTEM</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Stubs/**/*.cs" />
+    <Compile Include="Tests/**/*.cs" />
+    <Compile Include="../../Assets/PourDecisions/Scripts/**/*.cs" />
+  </ItemGroup>
+</Project>

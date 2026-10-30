@@ -1,0 +1,8 @@
+"Free Bar Assets Pack" by Styloo
+https://styloo.itch.io/freebarassetspack
+
+License: Creative Commons Zero v1.0 Universal (CC0 1.0), as listed on the itch.io page.
+No attribution required; credited in the README anyway.
+
+Used for: the Bar theme background (bg_bar.png) and bar counter (counter_bar.png),
+assembled by Tools/compose_stock_art.py.
